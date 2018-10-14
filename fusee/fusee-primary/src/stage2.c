@@ -13,18 +13,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
-#include <stdint.h>
 
-#include "utils.h"
-#include "display/video_fb.h"
-#include "fs_utils.h"
 #include "stage2.h"
 #include "chainloader.h"
-#include "lib/printk.h"
-#include "lib/vsprintf.h"
-#include "lib/ini.h"
-#include "lib/fatfs/ff.h"
+#include "fs_utils.h"
+#include "utils.h"
 
 char g_stage2_path[0x100] = {0};
 
@@ -74,7 +67,7 @@ void load_stage2(const char *bct0) {
     }
 
     if (strlen(config.path) + 1 + sizeof(stage2_args_t) > CHAINLOADER_ARG_DATA_MAX_SIZE) {
-        printk("Error: Stage2's path name is too big!\n");
+        print(SCREEN_LOG_LEVEL_ERROR, "Stage2's path name is too big!\n");
     }
 
     if (!check_32bit_address_loadable(config.entrypoint)) {
@@ -85,10 +78,10 @@ void load_stage2(const char *bct0) {
         fatal_error("Stage2's load address is invalid!\n");
     }
 
-    printk("[DEBUG] Stage 2 Config:\n");
-    printk("    File Path:    %s\n", config.path);
-    printk("    Load Address: 0x%08x\n", config.load_address);
-    printk("    Entrypoint:   0x%p\n", config.entrypoint);
+    print(SCREEN_LOG_LEVEL_DEBUG, "Stage 2 Config:\n");
+    print(SCREEN_LOG_LEVEL_DEBUG | SCREEN_LOG_LEVEL_NO_PREFIX, "    File Path:    %s\n", config.path);
+    print(SCREEN_LOG_LEVEL_DEBUG | SCREEN_LOG_LEVEL_NO_PREFIX, "    Load Address: 0x%08x\n", config.load_address);
+    print(SCREEN_LOG_LEVEL_DEBUG | SCREEN_LOG_LEVEL_NO_PREFIX, "    Entrypoint:   0x%p\n", config.entrypoint);
 
     if (f_stat(config.path, &info) != FR_OK) {
         fatal_error("Failed to stat stage2 (%s)!\n", config.path);
