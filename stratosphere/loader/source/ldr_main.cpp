@@ -26,6 +26,7 @@
 #include "ldr_debug_monitor.hpp"
 #include "ldr_shell.hpp"
 #include "ldr_ro_service.hpp"
+#include "ldr_cfg_service.hpp"
 
 extern "C" {
     extern u32 __start__;
