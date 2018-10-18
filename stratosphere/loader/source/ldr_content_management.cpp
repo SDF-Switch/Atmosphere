@@ -36,8 +36,8 @@ static bool g_has_initialized_fs_dev = false;
 /* Default to Key R, hold disables override, HBL at atmosphere/hbl.nsp. */
 static bool g_mounted_hbl_nsp = false;
 static char g_hbl_sd_path[FS_MAX_PATH+1] = "@Sdcard:/atmosphere/hbl.nsp\x00";
-static u64 g_override_key_combination = KEY_R;
-static bool g_override_by_default = true;
+u64 g_override_key_combination;
+bool g_override_by_default;
 static u64 g_override_hbl_tid = 0x010000000000100D;
 
 Result ContentManagement::MountCode(u64 tid, FsStorageId sid) {
@@ -260,6 +260,8 @@ static int LoaderIniHandler(void *user, const char *section, const char *name, c
 }
 
 void ContentManagement::LoadConfiguration(FILE *config) {
+    g_override_key_combination = KEY_R;
+    g_override_by_default = true;
     if (config == NULL) {
         return;
     }

@@ -94,6 +94,9 @@ void __appExit(void) {
 
 int main(int argc, char **argv)
 {
+    g_override_key_combination = KEY_R;
+    g_override_by_default = true;
+
     consoleDebugInit(debugDevice_SVC);
         
     /* TODO: What's a good timeout value to use here? */
@@ -103,6 +106,8 @@ int main(int argc, char **argv)
     server_manager->add_waitable(new ServiceServer<ProcessManagerService>("ldr:pm", 1));
     server_manager->add_waitable(new ServiceServer<ShellService>("ldr:shel", 3));
     server_manager->add_waitable(new ServiceServer<DebugMonitorService>("ldr:dmnt", 2));
+    server_manager->add_waitable(new ServiceServer<LoaderConfigService>("ldr:cfg", 4));
+
     if (!kernelAbove300()) {
         /* On 1.0.0-2.3.0, Loader services ldr:ro instead of ro. */
         server_manager->add_waitable(new ServiceServer<RelocatableObjectsService>("ldr:ro", 0x20));
