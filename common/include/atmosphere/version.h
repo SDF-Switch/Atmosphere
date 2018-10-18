@@ -14,11 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
  
-#ifndef FUSEE_KERNEL_PATCHES_H
-#define FUSEE_KERNEL_PATCHES_H
+#ifndef ATMOSPHERE_VERSION_H
+#define ATMOSPHERE_VERSION_H
 
-#include "utils.h"
-
-void package2_patch_kernel(void *kernel, size_t kernel_size, bool is_sd_kernel);
+#define ATMOSPHERE_RELEASE_VERSION_MAJOR    0
+#define ATMOSPHERE_RELEASE_VERSION_MINOR    7
+#define ATMOSPHERE_RELEASE_VERSION_MICRO    1
 
 #endif

@@ -76,25 +76,7 @@ void __appInit(void) {
     if (R_FAILED(rc)) {
         fatalSimple(MAKERESULT(Module_Libnx, LibnxError_InitFail_FS));
     }
-    
-    rc = splInitialize();
-    if (R_FAILED(rc))  {
-        fatalSimple(0xCAFE << 4 | 3);
-    }
-    
-    /* Check for exosphere API compatibility. */
-    u64 exosphere_cfg;
-    if (R_SUCCEEDED(splGetConfig((SplConfigItem)65000, &exosphere_cfg))) {
-        /* MitM requires Atmosphere API 0.1. */
-        u16 api_version = (exosphere_cfg >> 16) & 0xFFFF;
-        if (api_version < 0x0001) {
-            fatalSimple(0xCAFE << 4 | 0xFE);
-        }
-    } else {
-        fatalSimple(0xCAFE << 4 | 0xFF);
-    }
-    
-    //splExit();
+    CheckAtmosphereVersion();
 }
 
 void __appExit(void) {
@@ -108,6 +90,7 @@ int main(int argc, char **argv)
 {
     Thread worker_thread = {0};
     Thread sd_initializer_thread = {0};
+    Thread hid_initializer_thread = {0};
     consoleDebugInit(debugDevice_SVC);
     
     consoleDebugInit(debugDevice_SVC);
@@ -126,8 +109,15 @@ int main(int argc, char **argv)
         /* TODO: Panic. */
     }
     
+    if (R_FAILED(threadCreate(&hid_initializer_thread, &Utils::InitializeHidThreadFunc, NULL, 0x4000, 0x15, 0))) {
+        /* TODO: Panic. */
+    }
+    if (R_FAILED(threadStart(&hid_initializer_thread))) {
+        /* TODO: Panic. */
+    }
+    
     /* TODO: What's a good timeout value to use here? */
-    auto server_manager = std::make_unique<MultiThreadedWaitableManager>(1, U64_MAX, 0x20000);
+    auto server_manager = std::make_unique<MultiThreadedWaitableManager>(5, U64_MAX, 0x20000);
     //auto server_manager = std::make_unique<WaitableManager>(U64_MAX);
         
     /* Create fsp-srv mitm. */

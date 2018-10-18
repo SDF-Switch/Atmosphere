@@ -14,10 +14,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
  
-#ifndef EXOSPHERE_VERSION_H
-#define EXOSPHERE_VERSION_H
+#ifndef FUSEE_IPS_H
+#define FUSEE_IPS_H
 
-#define EXOSPHERE_RELEASE_VERSION_MAJOR 0
-#define EXOSPHERE_RELEASE_VERSION_MINOR 1
+#include "utils.h"
+#include "kip.h"
+#include <stdint.h>
+
+void apply_kernel_ips_patches(void *kernel, size_t kernel_size);
+kip1_header_t *apply_kip_ips_patches(kip1_header_t *kip, size_t kip_size);
 
 #endif
