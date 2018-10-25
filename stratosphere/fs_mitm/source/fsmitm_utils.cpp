@@ -34,6 +34,9 @@ static std::atomic_bool g_has_hid_session = false;
 static u64 g_override_key_combination = KEY_R;
 static bool g_override_by_default = true;
 
+/* Static buffer for loader.ini contents at runtime. */
+static char g_config_ini_data[0x800];
+
 static bool IsHexadecimal(const char *str) {
     while (*str) {
         if (isxdigit(*str)) {
@@ -93,12 +96,7 @@ void Utils::InitializeSdThreadFunc(void *args) {
         fsDirClose(&titles_dir);
     }
     
-    FsFile config_file;
-    if (R_SUCCEEDED(fsFsOpenFile(&g_sd_filesystem, "/atmosphere/loader.ini", FS_OPEN_READ, &config_file))) {
-        Utils::LoadConfiguration(&config_file);
-        fsFileClose(&config_file);
-    }
-
+    Utils::RefreshConfiguration();
     
     g_has_initialized = true;
     
@@ -246,10 +244,13 @@ Result Utils::GetKeysDown(u64 *keys) {
 }
 
 bool Utils::HasOverrideButton(u64 tid) {
-    if (tid < 0x0100000000010000ULL) {
+    if (tid < 0x0100000000010000ULL || !IsSdInitialized()) {
         /* Disable button override disable for non-applications. */
         return true;
     }
+    
+    /* Unconditionally refresh loader.ini contents. */
+    RefreshConfiguration();
     
     u64 kDown = 0;
     bool keys_triggered = (R_SUCCEEDED(GetKeysDown(&kDown)) && ((kDown & g_override_key_combination) != 0));
@@ -314,27 +315,24 @@ static int FsMitMIniHandler(void *user, const char *section, const char *name, c
 }
 
 
-void Utils::LoadConfiguration(FsFile *f) {
-    if (f == NULL) {
+void Utils::RefreshConfiguration() {
+    FsFile config_file;
+    if (R_FAILED(fsFsOpenFile(&g_sd_filesystem, "/atmosphere/loader.ini", FS_OPEN_READ, &config_file))) {
         return;
     }
     
     u64 size;
-    if (R_FAILED(fsFileGetSize(f, &size))) {
+    if (R_FAILED(fsFileGetSize(&config_file, &size))) {
         return;
     }
     
     size = std::min(size, (decltype(size))0x7FF);
     
-    char *config_str = new char[0x800];
-    if (config_str != NULL) {
-        /* Read in string. */
-        std::fill(config_str, config_str + 0x800, 0);
-        size_t r_s;
-        fsFileRead(f, 0, config_str, size, &r_s);
-        
-        ini_parse_string(config_str, FsMitMIniHandler, NULL);
-        
-        delete[] config_str;
-    }
+    /* Read in string. */
+    std::fill(g_config_ini_data, g_config_ini_data + 0x800, 0);
+    size_t r_s;
+    fsFileRead(&config_file, 0, g_config_ini_data, size, &r_s);
+    fsFileClose(&config_file);
+    
+    ini_parse_string(g_config_ini_data, FsMitMIniHandler, NULL);
 }
